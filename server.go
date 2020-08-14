@@ -14,9 +14,9 @@ var stopCh = setupSignalHandler()
 
 // Config holds server config
 type Config struct {
-	Port                      string
-	HTTPServerTimeout         time.Duration
-	HTTPServerShutdownTimeout time.Duration
+	Port                      string        `mapstructure:"port"`
+	HTTPServerTimeout         time.Duration `mapstructure:"http-server-timeout"`
+	HTTPServerShutdownTimeout time.Duration `mapstructure:"http-server-shutdown-timeout"`
 }
 
 // Logger is a simplified abstraction of the zap.Logger
