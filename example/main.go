@@ -11,9 +11,7 @@ import (
 )
 
 func main() {
-
 	logger := zap.NewExample()
-	defer logger.Sync()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
