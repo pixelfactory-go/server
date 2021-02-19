@@ -2,83 +2,102 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
+	"fmt"
+	"net"
 	"net/http"
 	"time"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"go.pixelfactory.io/pkg/observability/log"
+	"go.pixelfactory.io/pkg/observability/log/fields"
 )
 
-// Handle OS Signals
-var stopCh = setupSignalHandler()
-
-// Config holds server config
-type Config struct {
-	Port                      string        `mapstructure:"port"`
-	HTTPServerTimeout         time.Duration `mapstructure:"http-server-timeout"`
-	HTTPServerShutdownTimeout time.Duration `mapstructure:"http-server-shutdown-timeout"`
-}
-
-// Logger is a simplified abstraction of the zap.Logger
-type Logger interface {
-	Info(msg string, fields ...zapcore.Field)
-	Warn(msg string, fields ...zapcore.Field)
-	Fatal(msg string, fields ...zapcore.Field)
-}
+// Stop handles OS Signals
+var stop = make(chan struct{})
+var stopCh = setupSignalHandler(stop)
 
 // Server holds server
 type Server struct {
-	name   string
-	router http.Handler
-	config *Config
-	logger Logger
+	Name                      string
+	Router                    http.Handler
+	Logger                    log.Logger
+	Port                      string
+	HTTPServerTimeout         time.Duration
+	HTTPServerShutdownTimeout time.Duration
+	TLSConfig                 *tls.Config
 }
 
-// Option type
+// Option is an option for New server.
 type Option func(*Server)
 
-// WithName set server name
+// WithName set server name.
 func WithName(n string) Option {
 	return func(s *Server) {
-		s.name = n
+		s.Name = n
 	}
 }
 
-// WithRouter set server http Handler
+// WithRouter set server http Handler.
 func WithRouter(r http.Handler) Option {
 	return func(s *Server) {
-		s.router = r
+		s.Router = r
 	}
 }
 
-// WithConfig set server config
-func WithConfig(c *Config) Option {
+// WithLogger set server logger.
+func WithLogger(l log.Logger) Option {
 	return func(s *Server) {
-		s.config = c
+		s.Logger = l
 	}
 }
 
-// WithLogger set server logger
-func WithLogger(l Logger) Option {
+// WithPort set server port.
+func WithPort(p string) Option {
 	return func(s *Server) {
-		s.logger = l
+		s.Port = p
 	}
 }
 
-// NewServer create new Server with default values
+// WithHTTPServerTimeout set server http timeout.
+func WithHTTPServerTimeout(t time.Duration) Option {
+	return func(s *Server) {
+		s.HTTPServerTimeout = t
+	}
+}
+
+// WithHTTPServerShutdownTimeout set server http shutdown timeout.
+func WithHTTPServerShutdownTimeout(t time.Duration) Option {
+	return func(s *Server) {
+		s.HTTPServerShutdownTimeout = t
+	}
+}
+
+// WithTLSConfig set server tls.Config.
+func WithTLSConfig(cfg *tls.Config) Option {
+	return func(s *Server) {
+		s.TLSConfig = cfg
+	}
+}
+
+// NewServer create new Server with default values.
 func NewServer(opts ...Option) (*Server, error) {
+	// setup default server
 	srv := &Server{
-		name:   "default",
-		router: http.NewServeMux(),
-		config: &Config{
-			Port:                      "8080",
-			HTTPServerTimeout:         60 * time.Second,
-			HTTPServerShutdownTimeout: 5 * time.Second,
-		},
+		Name:                      "default",
+		Router:                    http.NewServeMux(),
+		Port:                      "8080",
+		HTTPServerTimeout:         60 * time.Second,
+		HTTPServerShutdownTimeout: 10 * time.Second,
 	}
 
 	for _, opt := range opts {
 		opt(srv)
+	}
+
+	// setup default logger
+	if srv.Logger == nil {
+		srv.Logger = log.New()
+		srv.Logger.Info("using default logger")
 	}
 
 	return srv, nil
@@ -86,34 +105,49 @@ func NewServer(opts ...Option) (*Server, error) {
 
 // ListenAndServe start server
 func (s *Server) ListenAndServe() {
-
 	srv := &http.Server{
-		Addr:         ":" + s.config.Port,
-		WriteTimeout: s.config.HTTPServerTimeout,
-		ReadTimeout:  s.config.HTTPServerTimeout,
-		IdleTimeout:  2 * s.config.HTTPServerTimeout,
-		Handler:      s.router,
+		Addr:         ":" + s.Port,
+		Handler:      s.Router,
+		WriteTimeout: s.HTTPServerTimeout,
+		ReadTimeout:  s.HTTPServerTimeout,
+		IdleTimeout:  2 * s.HTTPServerTimeout,
+	}
+
+	// Create listener
+	var ln net.Listener
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%s", s.Port))
+	if err != nil {
+		s.Logger.Error("Unable to create net.Listener", fields.Error(err))
+	}
+
+	if s.TLSConfig != nil {
+		ln = tls.NewListener(ln, s.TLSConfig)
 	}
 
 	// run server in background
 	go func() {
-		s.logger.Info("Starting HTTP server", zap.String("name", s.name), zap.String("port", s.config.Port))
-		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-			s.logger.Fatal("HTTP server crashed", zap.String("name", s.name), zap.Error(err))
+		s.Logger.Info("Starting server")
+		if err := srv.Serve(ln); err != http.ErrServerClosed {
+			s.Logger.Error("Server crashed", fields.Error(err))
 		}
 	}()
 
 	// wait for SIGTERM or SIGINT
 	<-stopCh
-	ctx, cancel := context.WithTimeout(context.Background(), s.config.HTTPServerShutdownTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), s.HTTPServerShutdownTimeout)
 	defer cancel()
 
-	s.logger.Info("Shutting down HTTP server", zap.String("name", s.name), zap.Duration("timeout", s.config.HTTPServerShutdownTimeout))
+	s.Logger.Info("Shutting down server")
 
 	// attempt graceful shutdown
 	if err := srv.Shutdown(ctx); err != nil {
-		s.logger.Warn("HTTP server graceful shutdown failed", zap.String("name", s.name), zap.Error(err))
+		s.Logger.Error("Server graceful shutdown failed", fields.Error(err))
 	} else {
-		s.logger.Info("HTTP server stopped", zap.String("name", s.name))
+		s.Logger.Info("Server stopped")
 	}
+}
+
+// Shutdown stops the server
+func (s *Server) Shutdown() {
+	close(stop)
 }
