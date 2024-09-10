@@ -107,7 +107,10 @@ func Test_NewServer_WithTLSConfig(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	tlsConfig := &tls.Config{Certificates: []tls.Certificate{cer}}
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cer},
+		MinVersion:   tls.VersionTLS12, // Set the minimum TLS version to TLS 1.2
+	}
 
 	httpSrv, err := server.NewServer(
 		server.WithTLSConfig(tlsConfig),
@@ -121,7 +124,19 @@ func Test_NewServer_ListenAndServe(t *testing.T) {
 	t.Parallel()
 	is := require.New(t)
 
-	httpSrv, err := server.NewServer()
+	cer, err := tls.LoadX509KeyPair("example/server.crt", "example/server.key")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cer},
+		MinVersion:   tls.VersionTLS12, // Set the minimum TLS version to TLS 1.2
+	}
+
+	httpSrv, err := server.NewServer(
+		server.WithTLSConfig(tlsConfig),
+	)
 	is.NoError(err)
 	is.NotEmpty(httpSrv)
 
@@ -129,7 +144,8 @@ func Test_NewServer_ListenAndServe(t *testing.T) {
 	serviceDone := make(chan struct{})
 	go func() {
 		close(serviceRunning)
-		httpSrv.ListenAndServe()
+		err := httpSrv.ListenAndServe()
+		is.NoError(err)
 		defer close(serviceDone)
 	}()
 
@@ -140,4 +156,18 @@ func Test_NewServer_ListenAndServe(t *testing.T) {
 
 	// wait until the service is shutdown (3)
 	<-serviceDone
+}
+
+func Test_NewServer_ListenAndServe_Error(t *testing.T) {
+	t.Parallel()
+	is := require.New(t)
+
+	httpSrv, err := server.NewServer(
+		server.WithPort("invalid"),
+	)
+	is.NoError(err)
+	is.NotEmpty(httpSrv)
+
+	err = httpSrv.ListenAndServe()
+	is.Error(err)
 }

@@ -29,12 +29,18 @@ func main() {
 		server.WithRouter(mux),
 		server.WithLogger(logger),
 		server.WithPort("3000"),
-		server.WithTLSConfig(&tls.Config{Certificates: []tls.Certificate{cer}}),
+		server.WithTLSConfig(&tls.Config{
+			Certificates: []tls.Certificate{cer},
+			MinVersion:   tls.VersionTLS13,
+		}),
 	)
 	if err != nil {
 		logger.Fatal("Unable to create server", zap.Error(err))
 	}
 
 	// This will block until shutdown
-	srv.ListenAndServe()
+	err = srv.ListenAndServe()
+	if err != nil {
+		logger.Fatal("Failed to start server", zap.Error(err))
+	}
 }
