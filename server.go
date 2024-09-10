@@ -12,11 +12,13 @@ import (
 	"go.pixelfactory.io/pkg/observability/log/fields"
 )
 
-// Stop handles OS Signals
-var stop = make(chan struct{})
-var stopCh = setupSignalHandler(stop)
+// Stop handles OS Signals.
+var (
+	stop   = make(chan struct{})
+	stopCh = setupSignalHandler(stop)
+)
 
-// Server holds server
+// Server is a http server.
 type Server struct {
 	Name                      string
 	Router                    http.Handler
@@ -103,8 +105,8 @@ func NewServer(opts ...Option) (*Server, error) {
 	return srv, nil
 }
 
-// ListenAndServe start server
-func (s *Server) ListenAndServe() {
+// ListenAndServe start server.
+func (s *Server) ListenAndServe() error {
 	srv := &http.Server{
 		Addr:         ":" + s.Port,
 		Handler:      s.Router,
@@ -118,6 +120,7 @@ func (s *Server) ListenAndServe() {
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%s", s.Port))
 	if err != nil {
 		s.Logger.Error("Unable to create net.Listener", fields.Error(err))
+		return err
 	}
 
 	if s.TLSConfig != nil {
@@ -142,12 +145,14 @@ func (s *Server) ListenAndServe() {
 	// attempt graceful shutdown
 	if err := srv.Shutdown(ctx); err != nil {
 		s.Logger.Error("Server graceful shutdown failed", fields.Error(err))
-	} else {
-		s.Logger.Info("Server stopped")
+		return err
 	}
+
+	s.Logger.Info("Server stopped")
+	return nil
 }
 
-// Shutdown stops the server
+// Shutdown stops the server.
 func (s *Server) Shutdown() {
 	close(stop)
 }
