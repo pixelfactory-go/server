@@ -16,7 +16,7 @@ func Test_NewServer(t *testing.T) {
 	t.Parallel()
 	is := require.New(t)
 
-	httpSrv, err := server.NewServer()
+	httpSrv, err := server.New()
 	is.NoError(err)
 	is.NotEmpty(httpSrv)
 	is.Equal(httpSrv.Port, "8080")
@@ -28,7 +28,7 @@ func Test_NewServer_WithName(t *testing.T) {
 	t.Parallel()
 	is := require.New(t)
 
-	httpSrv, err := server.NewServer(
+	httpSrv, err := server.New(
 		server.WithName("test"),
 	)
 	is.NoError(err)
@@ -40,7 +40,7 @@ func Test_NewServer_WithPort(t *testing.T) {
 	t.Parallel()
 	is := require.New(t)
 
-	httpSrv, err := server.NewServer(
+	httpSrv, err := server.New(
 		server.WithPort("1234"),
 	)
 	is.NoError(err)
@@ -53,7 +53,7 @@ func Test_NewServer_WithLogger(t *testing.T) {
 	is := require.New(t)
 
 	logger := log.New()
-	httpSrv, err := server.NewServer(
+	httpSrv, err := server.New(
 		server.WithLogger(logger),
 	)
 	is.NoError(err)
@@ -66,7 +66,7 @@ func Test_NewServer_WithRouter(t *testing.T) {
 	is := require.New(t)
 
 	router := http.NewServeMux()
-	httpSrv, err := server.NewServer(
+	httpSrv, err := server.New(
 		server.WithRouter(router),
 	)
 	is.NoError(err)
@@ -78,7 +78,7 @@ func Test_NewServer_WithHTTPServerTimeout(t *testing.T) {
 	t.Parallel()
 	is := require.New(t)
 
-	httpSrv, err := server.NewServer(
+	httpSrv, err := server.New(
 		server.WithHTTPServerTimeout(10 * time.Second),
 	)
 	is.NoError(err)
@@ -90,7 +90,7 @@ func Test_NewServer_WithHTTPServerShutdownTimeout(t *testing.T) {
 	t.Parallel()
 	is := require.New(t)
 
-	httpSrv, err := server.NewServer(
+	httpSrv, err := server.New(
 		server.WithHTTPServerShutdownTimeout(10 * time.Second),
 	)
 	is.NoError(err)
@@ -112,7 +112,7 @@ func Test_NewServer_WithTLSConfig(t *testing.T) {
 		MinVersion:   tls.VersionTLS12, // Set the minimum TLS version to TLS 1.2
 	}
 
-	httpSrv, err := server.NewServer(
+	httpSrv, err := server.New(
 		server.WithTLSConfig(tlsConfig),
 	)
 	is.NoError(err)
@@ -134,7 +134,7 @@ func Test_NewServer_ListenAndServe(t *testing.T) {
 		MinVersion:   tls.VersionTLS12, // Set the minimum TLS version to TLS 1.2
 	}
 
-	httpSrv, err := server.NewServer(
+	httpSrv, err := server.New(
 		server.WithTLSConfig(tlsConfig),
 	)
 	is.NoError(err)
@@ -162,7 +162,7 @@ func Test_NewServer_ListenAndServe_Error(t *testing.T) {
 	t.Parallel()
 	is := require.New(t)
 
-	httpSrv, err := server.NewServer(
+	httpSrv, err := server.New(
 		server.WithPort("invalid"),
 	)
 	is.NoError(err)
