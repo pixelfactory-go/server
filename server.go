@@ -81,8 +81,8 @@ func WithTLSConfig(cfg *tls.Config) Option {
 	}
 }
 
-// NewServer create new Server with default values.
-func NewServer(opts ...Option) (*Server, error) {
+// New create new Server with default values.
+func New(opts ...Option) (*Server, error) {
 	// setup default server
 	srv := &Server{
 		Name:                      "default",
@@ -98,7 +98,7 @@ func NewServer(opts ...Option) (*Server, error) {
 
 	// setup default logger
 	if srv.Logger == nil {
-		srv.Logger = log.New()
+		srv.Logger = log.New().With(fields.String("name", srv.Name), fields.String("port", srv.Port))
 		srv.Logger.Info("using default logger")
 	}
 

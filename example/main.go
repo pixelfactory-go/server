@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// Start http server
-	srv, err := server.NewServer(
+	srv, err := server.New(
 		server.WithName("Web"),
 		server.WithRouter(mux),
 		server.WithLogger(logger),
