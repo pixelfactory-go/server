@@ -30,7 +30,7 @@ package main
 
 import (
     "net/http"
-    "github.com/pixelfactory-go/server"
+    "go.pixelfactory.io/pkg/server"
 )
 
 func main() {
@@ -63,7 +63,7 @@ package main
 import (
     "net/http"
     "time"
-    "github.com/pixelfactory-go/server"
+    "go.pixelfactory.io/pkg/server"
     "go.pixelfactory.io/pkg/observability/log"
 )
 
@@ -106,7 +106,7 @@ package main
 import (
     "crypto/tls"
     "net/http"
-    "github.com/pixelfactory-go/server"
+    "go.pixelfactory.io/pkg/server"
 )
 
 func main() {
