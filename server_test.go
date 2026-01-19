@@ -19,9 +19,9 @@ func Test_NewServer(t *testing.T) {
 	httpSrv, err := server.New()
 	is.NoError(err)
 	is.NotEmpty(httpSrv)
-	is.Equal(httpSrv.Port, "8080")
-	is.Equal(httpSrv.HTTPServerTimeout, 60*time.Second)
-	is.Equal(httpSrv.HTTPServerShutdownTimeout, 10*time.Second)
+	is.Equal("8080", httpSrv.Port)
+	is.Equal(60*time.Second, httpSrv.HTTPServerTimeout)
+	is.Equal(10*time.Second, httpSrv.HTTPServerShutdownTimeout)
 }
 
 func Test_NewServer_WithName(t *testing.T) {
@@ -33,7 +33,7 @@ func Test_NewServer_WithName(t *testing.T) {
 	)
 	is.NoError(err)
 	is.NotEmpty(httpSrv)
-	is.Equal(httpSrv.Name, "test")
+	is.Equal("test", httpSrv.Name)
 }
 
 func Test_NewServer_WithPort(t *testing.T) {
@@ -45,7 +45,7 @@ func Test_NewServer_WithPort(t *testing.T) {
 	)
 	is.NoError(err)
 	is.NotEmpty(httpSrv)
-	is.Equal(httpSrv.Port, "1234")
+	is.Equal("1234", httpSrv.Port)
 }
 
 func Test_NewServer_WithLogger(t *testing.T) {
@@ -83,7 +83,7 @@ func Test_NewServer_WithHTTPServerTimeout(t *testing.T) {
 	)
 	is.NoError(err)
 	is.NotEmpty(httpSrv)
-	is.Equal(httpSrv.HTTPServerTimeout, 10*time.Second)
+	is.Equal(10*time.Second, httpSrv.HTTPServerTimeout)
 }
 
 func Test_NewServer_WithHTTPServerShutdownTimeout(t *testing.T) {
@@ -95,7 +95,7 @@ func Test_NewServer_WithHTTPServerShutdownTimeout(t *testing.T) {
 	)
 	is.NoError(err)
 	is.NotEmpty(httpSrv)
-	is.Equal(httpSrv.HTTPServerShutdownTimeout, 10*time.Second)
+	is.Equal(10*time.Second, httpSrv.HTTPServerShutdownTimeout)
 }
 
 func Test_NewServer_WithTLSConfig(t *testing.T) {
@@ -141,12 +141,11 @@ func Test_NewServer_ListenAndServe(t *testing.T) {
 	is.NotEmpty(httpSrv)
 
 	serviceRunning := make(chan struct{})
-	serviceDone := make(chan struct{})
+	serviceDone := make(chan error)
 	go func() {
 		close(serviceRunning)
-		err := httpSrv.ListenAndServe()
-		is.NoError(err)
-		defer close(serviceDone)
+		serveErr := httpSrv.ListenAndServe()
+		serviceDone <- serveErr
 	}()
 
 	// wait until the goroutine started to run (1)
@@ -155,7 +154,8 @@ func Test_NewServer_ListenAndServe(t *testing.T) {
 	httpSrv.Shutdown()
 
 	// wait until the service is shutdown (3)
-	<-serviceDone
+	err = <-serviceDone
+	is.NoError(err)
 }
 
 func Test_NewServer_ListenAndServe_Error(t *testing.T) {

@@ -12,7 +12,16 @@ import (
 	"go.pixelfactory.io/pkg/observability/log/fields"
 )
 
+const (
+	defaultServerTimeout    = 60 * time.Second
+	defaultShutdownTimeout  = 10 * time.Second
+	idleTimeoutMultiplier   = 2
+	signalChannelBufferSize = 2
+)
+
 // Stop handles OS Signals.
+//
+//nolint:gochecknoglobals // Required for signal handling across package
 var (
 	stop   = make(chan struct{})
 	stopCh = setupSignalHandler(stop)
@@ -74,7 +83,7 @@ func WithHTTPServerShutdownTimeout(t time.Duration) Option {
 	}
 }
 
-// WithTLSConfig set server tls.Config.
+// WithTLSConfig set server [tls.Config].
 func WithTLSConfig(cfg *tls.Config) Option {
 	return func(s *Server) {
 		s.TLSConfig = cfg
@@ -88,8 +97,8 @@ func New(opts ...Option) (*Server, error) {
 		Name:                      "default",
 		Router:                    http.NewServeMux(),
 		Port:                      "8080",
-		HTTPServerTimeout:         60 * time.Second,
-		HTTPServerShutdownTimeout: 10 * time.Second,
+		HTTPServerTimeout:         defaultServerTimeout,
+		HTTPServerShutdownTimeout: defaultShutdownTimeout,
 	}
 
 	for _, opt := range opts {
@@ -112,12 +121,12 @@ func (s *Server) ListenAndServe() error {
 		Handler:      s.Router,
 		WriteTimeout: s.HTTPServerTimeout,
 		ReadTimeout:  s.HTTPServerTimeout,
-		IdleTimeout:  2 * s.HTTPServerTimeout,
+		IdleTimeout:  idleTimeoutMultiplier * s.HTTPServerTimeout,
 	}
 
-	// Create listener
-	var ln net.Listener
-	ln, err := net.Listen("tcp", fmt.Sprintf(":%s", s.Port))
+	// Create listener with context
+	lc := &net.ListenConfig{}
+	ln, err := lc.Listen(context.Background(), "tcp", fmt.Sprintf(":%s", s.Port))
 	if err != nil {
 		s.Logger.Error("Unable to create net.Listener", fields.Error(err))
 		return err
@@ -130,8 +139,8 @@ func (s *Server) ListenAndServe() error {
 	// run server in background
 	go func() {
 		s.Logger.Info("Starting server")
-		if err := srv.Serve(ln); err != http.ErrServerClosed {
-			s.Logger.Error("Server crashed", fields.Error(err))
+		if serveErr := srv.Serve(ln); serveErr != http.ErrServerClosed {
+			s.Logger.Error("Server crashed", fields.Error(serveErr))
 		}
 	}()
 
@@ -143,9 +152,9 @@ func (s *Server) ListenAndServe() error {
 	s.Logger.Info("Shutting down server")
 
 	// attempt graceful shutdown
-	if err := srv.Shutdown(ctx); err != nil {
-		s.Logger.Error("Server graceful shutdown failed", fields.Error(err))
-		return err
+	if shutdownErr := srv.Shutdown(ctx); shutdownErr != nil {
+		s.Logger.Error("Server graceful shutdown failed", fields.Error(shutdownErr))
+		return shutdownErr
 	}
 
 	s.Logger.Info("Server stopped")

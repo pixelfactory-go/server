@@ -1,4 +1,5 @@
 .PHONY: fmt test lint
+
 SHELL := /bin/bash
 
 fmt:
