@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0](https://github.com/pixelfactory-go/server/compare/v0.4.1...v0.5.0) (2026-01-21)
+
+
+### Features
+
+* add comprehensive fuzzing support ([#13](https://github.com/pixelfactory-go/server/issues/13)) ([1c3e95b](https://github.com/pixelfactory-go/server/commit/1c3e95befee867f6290f2c78682c7d372955f9ca))
+
+
+### Bug Fixes
+
+* run CodeQL SAST on all branches to improve security score ([1926e98](https://github.com/pixelfactory-go/server/commit/1926e98a621394d2dcd7c6cee57fffb9aa0af7d0))
+
 ## [0.4.1](https://github.com/pixelfactory-go/server/compare/v0.4.0...v0.4.1) (2026-01-21)
 
 
