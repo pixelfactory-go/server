@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"go.pixelfactory.io/pkg/observability/log"
+
 	"go.pixelfactory.io/pkg/server"
 )
 
-// FuzzWithName tests the WithName option with arbitrary strings
+// FuzzWithName tests the WithName option with arbitrary strings.
 func FuzzWithName(f *testing.F) {
 	// Add seed corpus
 	f.Add("test-server")
@@ -35,7 +36,7 @@ func FuzzWithName(f *testing.F) {
 	})
 }
 
-// FuzzWithPort tests the WithPort option with arbitrary port strings
+// FuzzWithPort tests the WithPort option with arbitrary port strings.
 func FuzzWithPort(f *testing.F) {
 	// Add seed corpus
 	f.Add("8080")
@@ -59,7 +60,7 @@ func FuzzWithPort(f *testing.F) {
 	})
 }
 
-// FuzzWithHTTPServerTimeout tests the WithHTTPServerTimeout option
+// FuzzWithHTTPServerTimeout tests the WithHTTPServerTimeout option.
 func FuzzWithHTTPServerTimeout(f *testing.F) {
 	// Add seed corpus
 	f.Add(int64(60))
@@ -84,7 +85,7 @@ func FuzzWithHTTPServerTimeout(f *testing.F) {
 	})
 }
 
-// FuzzWithHTTPServerShutdownTimeout tests the WithHTTPServerShutdownTimeout option
+// FuzzWithHTTPServerShutdownTimeout tests the WithHTTPServerShutdownTimeout option.
 func FuzzWithHTTPServerShutdownTimeout(f *testing.F) {
 	// Add seed corpus
 	f.Add(int64(10))
@@ -109,7 +110,7 @@ func FuzzWithHTTPServerShutdownTimeout(f *testing.F) {
 	})
 }
 
-// FuzzNew tests the New function with multiple options
+// FuzzNew tests the New function with multiple options.
 func FuzzNew(f *testing.F) {
 	// Add seed corpus
 	f.Add("test-server", "8080", int64(60), int64(10))
@@ -149,7 +150,7 @@ func FuzzNew(f *testing.F) {
 	})
 }
 
-// FuzzWithRouter tests the WithRouter option
+// FuzzWithRouter tests the WithRouter option.
 func FuzzWithRouter(f *testing.F) {
 	// Add seed corpus
 	f.Add("")
@@ -170,7 +171,7 @@ func FuzzWithRouter(f *testing.F) {
 	})
 }
 
-// FuzzWithLogger tests the WithLogger option
+// FuzzWithLogger tests the WithLogger option.
 func FuzzWithLogger(f *testing.F) {
 	// Add seed corpus
 	f.Add("")
@@ -191,7 +192,7 @@ func FuzzWithLogger(f *testing.F) {
 	})
 }
 
-// FuzzWithTLSConfig tests the WithTLSConfig option
+// FuzzWithTLSConfig tests the WithTLSConfig option.
 func FuzzWithTLSConfig(f *testing.F) {
 	// Add seed corpus with different MinVersion values
 	f.Add(uint16(tls.VersionTLS10))
