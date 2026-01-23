@@ -11,21 +11,25 @@ import (
 )
 
 func main() {
+	// Initialize logger
 	logger := zap.NewExample()
+	defer logger.Sync() // Flush buffered logs
 
+	// Setup HTTP routes
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
-	})
+	mux.HandleFunc("/", handleRoot)
+	mux.HandleFunc("/health", handleHealth)
+	mux.HandleFunc("/api/v1/users", handleUsers)
 
+	// Load TLS certificates
 	cer, err := tls.LoadX509KeyPair("server.crt", "server.key")
 	if err != nil {
-		logger.Fatal(err.Error())
+		logger.Fatal("Failed to load TLS certificates", zap.Error(err))
 	}
 
-	// Start http server
+	// Create server with all options
 	srv, err := server.New(
-		server.WithName("Web"),
+		server.WithName("ExampleAPI"),
 		server.WithRouter(mux),
 		server.WithLogger(logger),
 		server.WithPort("3000"),
@@ -35,12 +39,39 @@ func main() {
 		}),
 	)
 	if err != nil {
-		logger.Fatal("Unable to create server", zap.Error(err))
+		logger.Fatal("Failed to create server", zap.Error(err))
 	}
 
-	// This will block until shutdown
-	err = srv.ListenAndServe()
-	if err != nil {
-		logger.Fatal("Failed to start server", zap.Error(err))
+	logger.Info("Server configured, starting...")
+
+	// ListenAndServe blocks until SIGTERM/SIGINT is received
+	// It handles graceful shutdown automatically
+	if err := srv.ListenAndServe(); err != nil {
+		logger.Fatal("Server failed", zap.Error(err))
+	}
+
+	logger.Info("Server shutdown complete")
+}
+
+// handleRoot handles requests to the root path
+func handleRoot(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
+}
+
+// handleHealth provides a health check endpoint
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, `{"status":"healthy"}`)
+}
+
+// handleUsers demonstrates an API endpoint
+func handleUsers(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"users":["alice","bob"]}`)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
