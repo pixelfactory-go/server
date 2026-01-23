@@ -13,7 +13,9 @@ import (
 func main() {
 	// Initialize logger
 	logger := zap.NewExample()
-	defer logger.Sync() // Flush buffered logs
+	defer func() {
+		_ = logger.Sync() // Flush buffered logs
+	}()
 
 	// Setup HTTP routes
 	mux := http.NewServeMux()
@@ -46,26 +48,26 @@ func main() {
 
 	// ListenAndServe blocks until SIGTERM/SIGINT is received
 	// It handles graceful shutdown automatically
-	if err := srv.ListenAndServe(); err != nil {
-		logger.Fatal("Server failed", zap.Error(err))
+	if serveErr := srv.ListenAndServe(); serveErr != nil {
+		logger.Fatal("Server failed", zap.Error(serveErr))
 	}
 
 	logger.Info("Server shutdown complete")
 }
 
-// handleRoot handles requests to the root path
+// handleRoot handles requests to the root path.
 func handleRoot(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
 }
 
-// handleHealth provides a health check endpoint
-func handleHealth(w http.ResponseWriter, r *http.Request) {
+// handleHealth provides a health check endpoint.
+func handleHealth(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, `{"status":"healthy"}`)
 }
 
-// handleUsers demonstrates an API endpoint
+// handleUsers demonstrates an API endpoint.
 func handleUsers(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:

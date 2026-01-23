@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -157,7 +158,7 @@ func (s *Server) ListenAndServe() error {
 	}
 
 	// wait for server goroutine to finish and check for errors
-	if err := <-serverErr; err != nil && err != http.ErrServerClosed {
+	if err := <-serverErr; err != nil && !errors.Is(err, http.ErrServerClosed) {
 		s.Logger.Error("Server stopped with error", fields.Error(err))
 		return err
 	}
