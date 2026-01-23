@@ -5,16 +5,14 @@
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
     [
-      "@semantic-release/exec",
+      "semantic-release-github-pullrequest",
       {
-        "prepareCmd": "echo ${nextRelease.version} > VERSION"
-      }
-    ],
-    [
-      "@semantic-release/git",
-      {
-        "assets": ["CHANGELOG.md", "VERSION"],
-        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        "assets": ["CHANGELOG.md"],
+        "branch": "release-${nextRelease.version}",
+        "baseBranch": "main",
+        "pullrequestTitle": "chore(release): v${nextRelease.version}",
+        "pullrequestBody": "This PR contains the CHANGELOG.md update for version ${nextRelease.version}.\n\nOnce merged, a GitHub release will be automatically created.",
+        "labels": ["release"]
       }
     ],
     "@semantic-release/github"
