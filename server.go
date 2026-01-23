@@ -158,9 +158,9 @@ func (s *Server) ListenAndServe() error {
 	}
 
 	// wait for server goroutine to finish and check for errors
-	if err := <-serverErr; err != nil && !errors.Is(err, http.ErrServerClosed) {
-		s.Logger.Error("Server stopped with error", fields.Error(err))
-		return err
+	if serveErr := <-serverErr; serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
+		s.Logger.Error("Server stopped with error", fields.Error(serveErr))
+		return serveErr
 	}
 
 	s.Logger.Info("Server stopped")
