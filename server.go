@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -137,11 +138,10 @@ func (s *Server) ListenAndServe() error {
 	}
 
 	// run server in background
+	serverErr := make(chan error, 1)
 	go func() {
 		s.Logger.Info("Starting server")
-		if serveErr := srv.Serve(ln); serveErr != http.ErrServerClosed {
-			s.Logger.Error("Server crashed", fields.Error(serveErr))
-		}
+		serverErr <- srv.Serve(ln)
 	}()
 
 	// wait for SIGTERM or SIGINT
@@ -155,6 +155,12 @@ func (s *Server) ListenAndServe() error {
 	if shutdownErr := srv.Shutdown(ctx); shutdownErr != nil {
 		s.Logger.Error("Server graceful shutdown failed", fields.Error(shutdownErr))
 		return shutdownErr
+	}
+
+	// wait for server goroutine to finish and check for errors
+	if serveErr := <-serverErr; serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
+		s.Logger.Error("Server stopped with error", fields.Error(serveErr))
+		return serveErr
 	}
 
 	s.Logger.Info("Server stopped")
