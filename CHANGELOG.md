@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0](https://github.com/pixelfactory-go/server/compare/v0.6.0...v0.7.0) (2026-01-26)
+
+
+### Features
+
+* add PR title validation workflow ([ef9a412](https://github.com/pixelfactory-go/server/commit/ef9a412ef094bb8f70f7638116cde842a0120814))
+
 ## [0.6.0](https://github.com/pixelfactory-go/server/compare/v0.5.1...v0.6.0) (2026-01-23)
 
 
