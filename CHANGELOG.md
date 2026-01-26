@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0](https://github.com/pixelfactory-go/server/compare/v0.7.0...v0.8.0) (2026-01-26)
+
+
+### Features
+
+* add comprehensive fuzzing support ([#13](https://github.com/pixelfactory-go/server/issues/13)) ([1c3e95b](https://github.com/pixelfactory-go/server/commit/1c3e95befee867f6290f2c78682c7d372955f9ca))
+* add PR title validation workflow ([ef9a412](https://github.com/pixelfactory-go/server/commit/ef9a412ef094bb8f70f7638116cde842a0120814))
+* Add workflow_dispatch trigger to release-please workflow ([#18](https://github.com/pixelfactory-go/server/issues/18)) ([7cf6bb2](https://github.com/pixelfactory-go/server/commit/7cf6bb2771aeb1c41913b94cfde4822638e39c41))
+* modernize repository with documentation, CI/CD, and code quality improvements ([#4](https://github.com/pixelfactory-go/server/issues/4)) ([777d36a](https://github.com/pixelfactory-go/server/commit/777d36aeb9381ac1be7e410d5d5777d952e8c7e6))
+
+
+### Bug Fixes
+
+* **ci:** add name to test job in CI workflow ([385239b](https://github.com/pixelfactory-go/server/commit/385239b729e3c60ead9e8d710ffffa4b9b5cfdfd))
+* run CodeQL SAST on all branches to improve security score ([1926e98](https://github.com/pixelfactory-go/server/commit/1926e98a621394d2dcd7c6cee57fffb9aa0af7d0))
+* Update permissions in release-please workflow ([2149f99](https://github.com/pixelfactory-go/server/commit/2149f9944b44949c48d8f4a2b458647e62f6fead))
+
 ## [0.7.0](https://github.com/pixelfactory-go/server/compare/v0.6.0...v0.7.0) (2026-01-26)
 
 
