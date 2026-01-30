@@ -22,8 +22,9 @@ func FuzzWithName(f *testing.F) {
 	f.Add("with\nnewline")
 	f.Add("特殊字符")
 
+	logger := log.New()
 	f.Fuzz(func(t *testing.T, name string) {
-		srv, err := server.New(server.WithName(name))
+		srv, err := server.New(server.WithName(name), server.WithLogger(logger))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -46,8 +47,9 @@ func FuzzWithPort(f *testing.F) {
 	f.Add("65535")
 	f.Add("0")
 
+	logger := log.New()
 	f.Fuzz(func(t *testing.T, port string) {
-		srv, err := server.New(server.WithPort(port))
+		srv, err := server.New(server.WithPort(port), server.WithLogger(logger))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -70,9 +72,10 @@ func FuzzWithHTTPServerTimeout(f *testing.F) {
 	f.Add(int64(1))
 	f.Add(int64(-1))
 
+	logger := log.New()
 	f.Fuzz(func(t *testing.T, seconds int64) {
 		timeout := time.Duration(seconds) * time.Second
-		srv, err := server.New(server.WithHTTPServerTimeout(timeout))
+		srv, err := server.New(server.WithHTTPServerTimeout(timeout), server.WithLogger(logger))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -95,9 +98,10 @@ func FuzzWithHTTPServerShutdownTimeout(f *testing.F) {
 	f.Add(int64(1))
 	f.Add(int64(-1))
 
+	logger := log.New()
 	f.Fuzz(func(t *testing.T, seconds int64) {
 		timeout := time.Duration(seconds) * time.Second
-		srv, err := server.New(server.WithHTTPServerShutdownTimeout(timeout))
+		srv, err := server.New(server.WithHTTPServerShutdownTimeout(timeout), server.WithLogger(logger))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -117,6 +121,7 @@ func FuzzNew(f *testing.F) {
 	f.Add("api", "3000", int64(30), int64(5))
 	f.Add("", "80", int64(0), int64(0))
 
+	logger := log.New()
 	f.Fuzz(func(t *testing.T, name, port string, timeout, shutdownTimeout int64) {
 		timeoutDuration := time.Duration(timeout) * time.Second
 		shutdownTimeoutDuration := time.Duration(shutdownTimeout) * time.Second
@@ -126,6 +131,7 @@ func FuzzNew(f *testing.F) {
 			server.WithPort(port),
 			server.WithHTTPServerTimeout(timeoutDuration),
 			server.WithHTTPServerShutdownTimeout(shutdownTimeoutDuration),
+			server.WithLogger(logger),
 		)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -155,10 +161,11 @@ func FuzzWithRouter(f *testing.F) {
 	// Add seed corpus
 	f.Add("")
 
+	logger := log.New()
 	f.Fuzz(func(t *testing.T, _ string) {
 		// Create a new router for each iteration
 		router := http.NewServeMux()
-		srv, err := server.New(server.WithRouter(router))
+		srv, err := server.New(server.WithRouter(router), server.WithLogger(logger))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -200,13 +207,14 @@ func FuzzWithTLSConfig(f *testing.F) {
 	f.Add(uint16(tls.VersionTLS12))
 	f.Add(uint16(tls.VersionTLS13))
 
+	logger := log.New()
 	f.Fuzz(func(t *testing.T, minVersion uint16) {
 		// Create a basic TLS config (without loading certificates to avoid file I/O)
 		tlsConfig := &tls.Config{
 			MinVersion: minVersion,
 		}
 
-		srv, err := server.New(server.WithTLSConfig(tlsConfig))
+		srv, err := server.New(server.WithTLSConfig(tlsConfig), server.WithLogger(logger))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
