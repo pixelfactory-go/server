@@ -7,7 +7,7 @@ toolchain go1.24.12
 require (
 	github.com/stretchr/testify v1.11.1
 	go.pixelfactory.io/pkg/observability/log v1.5.0
-	go.uber.org/zap v1.27.1
+	go.uber.org/zap v1.28.0
 )
 
 require (
